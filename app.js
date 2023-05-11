@@ -20,41 +20,55 @@ app.use(express.static("public"));
 
 mongoose.connect(mongoAtlas, {
   useNewUrlParser: true,
-});
+  useUnifiedTopology: true
+})
+.then(() => console.log("Connected to database."))
+.catch((err) => console.error(err));
 
 //  Task MAnager
-const taskSchema =new mongoose.Schema( {
+const taskSchema = {
   name: String,
-});
+};
 
 const Task = mongoose.model("Task", taskSchema);
 
-const task1 = new Task({
-  name: "Welcome to DailyBlogger",
-});
-
-const task2 = new Task({
-  name: "Click on compose to write daily Blog",
-});
-
-const task3 = new Task({
-  name: "Click on + to add task and checkbox to delete task",
-});
-
-const defaultTask = [task1, task2, task3];
-
-Task.insertMany(defaultTask, function (err) {
+// Check if there are any existing tasks in the database
+Task.countDocuments({}, function (err, count) {
   if (err) {
     console.log(err);
   } else {
-    console.log("Successfully Addedd defaultTask to DB.");
+    // If there are no tasks in the database, insert the default tasks
+    if (count === 0) {
+      const task1 = new Task({
+        name: "Welcome to DailyBlogger",
+      });
+
+      const task2 = new Task({
+        name: "Click on compose to write daily Blog",
+      });
+
+      const task3 = new Task({
+        name: "Click on + to add task and checkbox to delete task",
+      });
+
+      const defaultTasks = [task1, task2, task3];
+
+      Task.insertMany(defaultTasks, function (err) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("Successfully added default tasks to DB.");
+        }
+      });
+    }
   }
 });
 
-const postSchema = new mongoose.Schema({
+
+const postSchema = {
   title: String,
   content: String,
-});
+};
 
 const Post = mongoose.model("Post", postSchema);
 
@@ -65,58 +79,66 @@ app.get("/", function (req, res) {
   });
 });
 
-app.post("/delete", function (req, res) {
-  const checkedTaskId = req.body.checkbox;
-  const postId = req.body.postId;
+app.post("/delete", async (req, res) => {
+  try {
+    const checkedTaskId = req.body.checkbox;
+    const postId = req.body.postId;
 
-  if (checkedTaskId) {
-    Task.findByIdAndRemove(checkedTaskId, function (err) {
-      if (!err) {
-        console.log("Successfully deleted checked item.");
-        res.redirect("/");
-      } else {
-        console.log(err);
-      }
-    });
-  } else if (postId) {
-    Post.findByIdAndRemove(postId, function (err) {
-      if (!err) {
-        console.log("Successfully deleted post.");
-        res.redirect("/");
-      } else {
-        console.log(err);
-      }
-    });
-  } else {
-    console.log("Invalid delete request");
+    if (checkedTaskId) {
+      await Task.findByIdAndRemove(checkedTaskId);
+      console.log("Successfully deleted checked item.");
+      res.redirect("/");
+    } else if (postId) {
+      await Post.findByIdAndRemove(postId);
+      console.log("Successfully deleted post.");
+      res.redirect("/");
+    } else {
+      console.log("Invalid delete request");
+      res.redirect("/");
+    }
+  } catch (err) {
+    console.log(err);
     res.redirect("/");
   }
 });
 
+
 app.post("/", function (req, res) {
   const newTaskName = req.body.newTask;
-  const task = new Task({
-    name: newTaskName,
+  Task.findOneAndUpdate({ name: newTaskName }, { name: newTaskName }, { upsert: true }, function (err) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("Successfully added/updated task.");
+    }
+    res.redirect("/");
   });
-  task.save();
-  res.redirect("/");
 });
+
+
 
 app.get("/compose", function (req, res) {
   res.render("compose");
 });
 
-app.post("/compose", function (req, res) {
+app.post("/compose", async function (req, res) {
   const post = new Post({
     title: req.body.postTitle,
     content: req.body.postBody,
   });
-  post.save(function (err) {
-    if (!err) {
-      res.redirect("/");
-    }
-  });
+
+  try {
+    await post.save();
+    res.redirect("/");
+  } catch (err) {
+    console.log(err);
+    res.redirect("/");
+  }
 });
+
+
+
+
 
 app.get("/posts/:postId", function(req, res){
   const requestedPostId = req.params.postId;

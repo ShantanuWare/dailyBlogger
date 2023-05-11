@@ -1,0 +1,57 @@
+<%- include("partials/head"); -%>
+
+
+  <body style="background-color: #F4EAD5">
+
+    <div class="container-fluid" style="background-color: #F4EAD5; min-height: 100vh; margin-bottom: 30px">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="sidebar flex-wrap" id="sidebar">
+            <h2>Today's Task</h2>
+            <% task.forEach(function(task) { %>
+              <form action="/delete" method="post" class="task">
+                <div class="d-inline offcanvas-body">
+                  <input type="checkbox" name="checkbox" value="<%=task._id %>" onChange="this.form.submit()" />
+                  <span  style="overflow-wrap: break-word">
+                    <%= task.name %>
+                  </span>
+                </div>
+              </form>
+            <% }) %>
+            <form class="task mt-4" action="/" method="post">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" name="newTask" placeholder="Add new task" autocomplete="off" />
+                <button type="submit" class="btn btn-primary">ADD</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+
+        <div class="col-md-8 main" style="background-color: #F4EAD5">
+            <% post.forEach(function(post){ %>
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h2 class="card-title fw-bold"><%=post.title%></h2>
+                  <p class="card-text"><%=post.content.substring(0, 400) + " ..." %></p>
+                </div>
+                <div class="card-footer bg-white">
+                  <a href="/posts/<%=post._id%>" class="btn btn-primary">Read More</a>
+                  <form action="/delete" method="post" class="d-inline">
+                    <input type="hidden" name="postId" value="<%= post._id %>" />
+                    <button class="btn btn-danger">Delete</button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          
+        </div>
+        
+        
+        
+      </div>
+    </div>
+    <%- include("partials/footer"); -%>
+  </body>
+
+  

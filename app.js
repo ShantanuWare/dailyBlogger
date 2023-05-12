@@ -131,7 +131,9 @@ app.post("/compose", async function (req, res) {
 
   try {
     await post.save();
+    console.log("Post saved to database");
     res.redirect("/");
+    console.log("Redirecting to home page");
   } catch (err) {
     console.log(err);
     res.redirect("/");

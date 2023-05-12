@@ -72,12 +72,16 @@ const postSchema = {
 
 const Post = mongoose.model("Post", postSchema);
 
-app.get("/", function (req, res) {
-  Promise.all([Task.find({}), Post.find({})]).then(function (result) {
-    const [task, post] = result;
+app.get("/", async function (req, res) {
+  try {
+    const [task, post] = await Promise.all([Task.find({}), Post.find({})]);
     res.render("home", { task: task, post: post });
-  });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Internal Server Error");
+  }
 });
+
 
 app.post("/delete", async (req, res) => {
   try {

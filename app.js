@@ -3,8 +3,8 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _ = require("lodash");
 const mongoose = require("mongoose");
-require('dotenv').config()
-const mongoAtlas=process.env.MONGO_ATLAS;
+require("dotenv").config();
+const mongoAtlas = process.env.MONGO_ATLAS;
 
 const aboutContent =
   "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
@@ -18,12 +18,13 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-mongoose.connect(mongoAtlas, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log("Connected to database."))
-.catch((err) => console.error(err));
+mongoose
+  .connect(mongoAtlas, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to database."))
+  .catch((err) => console.error(err));
 
 //  Task MAnager
 const taskSchema = {
@@ -64,7 +65,6 @@ Task.countDocuments({}, function (err, count) {
   }
 });
 
-
 const postSchema = {
   title: String,
   content: String,
@@ -86,7 +86,7 @@ app.post("/delete", async (req, res) => {
 
     if (checkedTaskId) {
       await Task.findByIdAndRemove(checkedTaskId);
-      console.log("Successfully deleted checked item.");
+      console.log("Successfully deleted checked task.");
       res.redirect("/");
     } else if (postId) {
       await Post.findByIdAndRemove(postId);
@@ -102,20 +102,22 @@ app.post("/delete", async (req, res) => {
   }
 });
 
-
 app.post("/", function (req, res) {
   const newTaskName = req.body.newTask;
-  Task.findOneAndUpdate({ name: newTaskName }, { name: newTaskName }, { upsert: true }, function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Successfully added/updated task.");
+  Task.findOneAndUpdate(
+    { name: newTaskName },
+    { name: newTaskName },
+    { upsert: true },
+    function (err) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("Successfully added/updated task.");
+      }
+      res.redirect("/");
     }
-    res.redirect("/");
-  });
+  );
 });
-
-
 
 app.get("/compose", function (req, res) {
   res.render("compose");
@@ -136,22 +138,16 @@ app.post("/compose", async function (req, res) {
   }
 });
 
-
-
-
-
-app.get("/posts/:postId", function(req, res){
+app.get("/posts/:postId", function (req, res) {
   const requestedPostId = req.params.postId;
 
-  Post.findOne({_id: requestedPostId}, function(err, post){
+  Post.findOne({ _id: requestedPostId }, function (err, post) {
     res.render("post", {
       title: post.title,
-      content: post.content
+      content: post.content,
     });
   });
 });
-
-
 
 app.get("/about", function (req, res) {
   res.render("about", { aboutContent: aboutContent });
@@ -161,6 +157,6 @@ app.get("/contact", function (req, res) {
   res.render("contact", { contactContent: contactContent });
 });
 
-app.listen(process.env.PORT ||3000, function () {
+app.listen(process.env.PORT || 3000, function () {
   console.log("server started..!");
-}); 
+});
